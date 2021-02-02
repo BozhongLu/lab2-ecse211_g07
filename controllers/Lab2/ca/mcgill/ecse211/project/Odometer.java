@@ -1,8 +1,9 @@
+//Enzo and Bozhong
 package ca.mcgill.ecse211.project;
 
 import static ca.mcgill.ecse211.project.Resources.*;
 import static simlejos.ExecutionController.waitUntilNextStep;
-
+import java.text.DecimalFormat;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -95,7 +96,7 @@ public class Odometer implements Runnable {
       prevTacho[RIGHT] = currTacho[RIGHT];
       currTacho[LEFT] = leftMotor.getTachoCount();
       prevTacho[RIGHT] = rightMotor.getTachoCount();
-
+      //System.out.println(leftMotor.getTachoCount()+"and right"+rightMotor.getTachoCount());
 
       // TODO Implement this method below so it updates the deltaPosition
       updateDeltaPosition(prevTacho, currTacho, theta, deltaPosition);
@@ -104,8 +105,10 @@ public class Odometer implements Runnable {
       // Update odometer values by completing and calling the relevant method
       updateOdometerValues();
       // Print odometer information to the console
-
+      printPosition();
       // Wait until the next physics step to run the next iteration of the loop
+      waitUntilNextStep();
+      
     }
   }
   
@@ -122,15 +125,15 @@ public class Odometer implements Runnable {
     double dx = 0;
     double dy = 0;
     double dtheta = 0;
-    
+
     // TODO Calculate changes in x, y, theta based on current and previous tachometer counts:
-    double distRight = 3.14159*WHEEL_RAD*(curr[RIGHT])/180; // displacement of right wheel
-    double distLeft = 3.14159*WHEEL_RAD*(curr[LEFT])/180;// displacement of left wheel
-    double distance = (distRight+distLeft)*0.5; // dispalcement magnitude of middle of base.
-    dtheta = (distLeft-distRight)/BASE_WIDTH; // convention: when  turn right, theta increases
-    theta = theta+dtheta;
-    dx = distance*Math.sin(theta);
-    dy = distance*Math.cos(theta);
+    double distRight = Math.PI * WHEEL_RAD * (curr[RIGHT] - prev[RIGHT]) / 180; // displacement of right wheel
+    double distLeft = Math.PI * WHEEL_RAD * (curr[LEFT] - prev[LEFT]) / 180;// displacement of left wheel
+    double distance = (distRight + distLeft) * 0.5; // dispalcement magnitude of middle of base.
+    dtheta = (distLeft - distRight) / BASE_WIDTH; // convention: when turn right, theta increases
+    theta = theta + dtheta;
+    dx = distance * Math.sin(theta);
+    dy = distance * Math.cos(theta);
 
 
 
@@ -143,15 +146,18 @@ public class Odometer implements Runnable {
     deltas[0] = dx;
     deltas[1] = dy;
     deltas[2] = Math.toDegrees(dtheta);
-  }
+    
+   }
 
   /**
    * Prints odometer information to the console.
    */
   public void printPosition() {
-    lock.lock();
     // TODO
-    System.out.println("Print odometer x, y, theta here"); 
+    lock.lock();
+
+    System.out.printf("\tX: %.0f\t\tY: %.0f\t\tTheta: %.0f\n",x,y,theta);
+    //System.out.println("Print odometer x, y, theta here"); 
     lock.unlock();
   }
   
@@ -194,7 +200,7 @@ public class Odometer implements Runnable {
       
       // TODO Update y and theta. Remember to keep theta within 360 degrees
       y+= deltaPosition[1];
-       theta  = (theta+deltaPosition[2])%360;
+      theta  = (theta+(360 + deltaPosition[2]) % 360)% 360;
       isResetting = false;
       doneResetting.signalAll(); // Let the other threads know we are done resetting
     } finally {
@@ -278,3 +284,4 @@ public class Odometer implements Runnable {
   }
 
 }
+
