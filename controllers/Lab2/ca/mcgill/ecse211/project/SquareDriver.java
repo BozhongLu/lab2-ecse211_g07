@@ -17,6 +17,7 @@ public class SquareDriver {
     setAcceleration(ACCELERATION);
     for (int i = 0; i < 4; i++) {
       moveStraightFor(length);
+      //System.out.println(i+"  ");
       turnBy(90.0); // degrees clockwise
     }
     stopMotors();
@@ -30,7 +31,7 @@ public class SquareDriver {
   public static void moveStraightFor(double distance) {
     // TODO Set motor speeds and rotate them by the given distance.
     // This method should not return until the robot has finished moving.
-    double WRotationAngle = distance*180/(3.14159*WHEEL_RAD);
+    double WRotationAngle = distance*TILE_SIZE*(57.3/WHEEL_RAD);
     leftMotor.setSpeed(FORWARD_SPEED);
     rightMotor.setSpeed(FORWARD_SPEED);
     leftMotor.rotate((int) WRotationAngle,true); // not blocked to let other wheel rotate same time
@@ -114,6 +115,7 @@ public class SquareDriver {
    */
   public static void setAcceleration(int acceleration) {
     // TODO
+    rightMotor.setAcceleration(ACCELERATION);
   }
 
 }
