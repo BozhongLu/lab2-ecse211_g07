@@ -103,6 +103,6 @@ DPM-Robot {
     EV3 {
     }
   ]
-  controller "Lab1"
+  controller "Lab2"
 }
 
