@@ -1,4 +1,4 @@
-//Enzo and Bozhong
+// Enzo and Bozhong
 package ca.mcgill.ecse211.project;
 
 import static ca.mcgill.ecse211.project.Resources.*;
@@ -20,24 +20,24 @@ import java.util.concurrent.locks.ReentrantLock;
  * @author Olivier St-Martin Cormier
  */
 public class Odometer implements Runnable {
-  
+
   /** The x-axis position in meters. */
   private volatile double x;
-  
+
   /** The y-axis position in meters. */
   private volatile double y;
-  
+
   /** The orientation (heading) in degrees. */
   private volatile double theta;
-  
+
   /** The instantaneous change in position (dx, dy, dTheta). */
   private static double[] deltaPosition = new double[3];
 
   // Thread control tools
-  
-  /**  Fair lock for concurrent writing. */
+
+  /** Fair lock for concurrent writing. */
   private static Lock lock = new ReentrantLock(true);
-  
+
   /** Indicates if a thread is trying to reset any position parameters. */
   private volatile boolean isResetting = false;
 
@@ -52,10 +52,10 @@ public class Odometer implements Runnable {
   private static int[] prevTacho = new int[2];
   /** The current motor tacho counts. */
   private static int[] currTacho = new int[2];
-  
+
   private static final int LEFT = 0;
   private static final int RIGHT = 1;
-  
+
   /** x coordinate of starting point in meters. */
   private static final double SX = 0.1524;
   /** y coordinate of starting point in meters. */
@@ -63,8 +63,7 @@ public class Odometer implements Runnable {
 
 
   /**
-   * This is the default constructor of this class. It initiates all variables once. It
-   * cannot be accessed externally.
+   * This is the default constructor of this class. It initiates all variables once. It cannot be accessed externally.
    */
   private Odometer() {
     setXyt(SX, SY, 0);
@@ -85,7 +84,8 @@ public class Odometer implements Runnable {
   /*
    * This method is where the logic for the odometer will run.
    */
-  @Override public void run() {
+  @Override
+  public void run() {
     // TODO Complete the following tasks
     // Reset motor tacho counts to zero
     leftMotor.resetTachoCount();
@@ -96,7 +96,7 @@ public class Odometer implements Runnable {
       prevTacho[RIGHT] = currTacho[RIGHT];
       currTacho[LEFT] = leftMotor.getTachoCount();
       prevTacho[RIGHT] = rightMotor.getTachoCount();
-      //System.out.println(leftMotor.getTachoCount()+"and right"+rightMotor.getTachoCount());
+      // System.out.println(leftMotor.getTachoCount()+"and right"+rightMotor.getTachoCount());
 
       // TODO Implement this method below so it updates the deltaPosition
       updateDeltaPosition(prevTacho, currTacho, theta, deltaPosition);
@@ -108,10 +108,10 @@ public class Odometer implements Runnable {
       printPosition();
       // Wait until the next physics step to run the next iteration of the loop
       waitUntilNextStep();
-      
+
     }
   }
-  
+
   /**
    * Updates the robot deltaPosition (x, y, theta) given the motor tacho counts.
    *
@@ -127,14 +127,15 @@ public class Odometer implements Runnable {
     double dtheta = 0;
 
     // TODO Calculate changes in x, y, theta based on current and previous tachometer counts:
-    double distRight = Math.PI * WHEEL_RAD * (curr[RIGHT] - prev[RIGHT]) / 180; // displacement of right wheel
-    double distLeft = Math.PI * WHEEL_RAD * (curr[LEFT] - prev[LEFT]) / 180;// displacement of left wheel
+    double distRight = (Math.PI / 180.0) * WHEEL_RAD * (curr[RIGHT] - prev[RIGHT]);
+    // displacement of right wheel
+    double distLeft = (Math.PI / 180.0) * WHEEL_RAD * (curr[LEFT] - prev[LEFT]);
+    // displacement of left wheel
     double distance = (distRight + distLeft) * 0.5; // dispalcement magnitude of middle of base.
     dtheta = (distLeft - distRight) / BASE_WIDTH; // convention: when turn right, theta increases
     theta = theta + dtheta;
     dx = distance * Math.sin(theta);
     dy = distance * Math.cos(theta);
-
 
 
 
@@ -146,8 +147,8 @@ public class Odometer implements Runnable {
     deltas[0] = dx;
     deltas[1] = dy;
     deltas[2] = Math.toDegrees(dtheta);
-    
-   }
+
+  }
 
   /**
    * Prints odometer information to the console.
@@ -156,15 +157,16 @@ public class Odometer implements Runnable {
     // TODO
     lock.lock();
 
-    System.out.printf("\tX: %.0f\t\tY: %.0f\t\tTheta: %.0f\n",x,y,theta);
-    //System.out.println("Print odometer x, y, theta here"); 
+    System.out.printf("\tX: %.2f\t\tY: %.2f\t\tTheta: %.2f\n", x, y, theta);
+    // System.out.println("Print odometer x, y, theta here");
     lock.unlock();
   }
-  
+
   /**
    * Returns the Odometer data.
    *
-   * <p>{@code odoData[0] = x, odoData[1] = y; odoData[2] = theta;}
+   * <p>
+   * {@code odoData[0] = x, odoData[1] = y; odoData[2] = theta;}
    *
    * @return the odometer data.
    */
@@ -188,8 +190,7 @@ public class Odometer implements Runnable {
   }
 
   /**
-   * Increments the current values of the x, y and theta instance variables given deltaPositions.
-   * Useful for odometry.
+   * Increments the current values of the x, y and theta instance variables given deltaPositions. Useful for odometry.
    */
   public void updateOdometerValues() {
     lock.lock();
@@ -197,10 +198,10 @@ public class Odometer implements Runnable {
     try {
       x += deltaPosition[0];
 
-      
+
       // TODO Update y and theta. Remember to keep theta within 360 degrees
-      y+= deltaPosition[1];
-      theta  = (theta+(360 + deltaPosition[2]) % 360)% 360;
+      y += deltaPosition[1];
+      theta = (theta + (360 + deltaPosition[2]) % 360) % 360;
       isResetting = false;
       doneResetting.signalAll(); // Let the other threads know we are done resetting
     } finally {
