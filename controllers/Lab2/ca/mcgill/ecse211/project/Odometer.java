@@ -87,16 +87,22 @@ public class Odometer implements Runnable {
   @Override public void run() {
     // TODO Complete the following tasks
     // Reset motor tacho counts to zero
-    
+    leftMotor.resetTachoCount();
+    rightMotor.resetTachoCount();
     while (true) {
       // Update previous and current tacho counts (add 3 more lines)
       prevTacho[LEFT] = currTacho[LEFT];
+      prevTacho[RIGHT] = currTacho[RIGHT];
+      currTacho[LEFT] = leftMotor.getTachoCount();
+      prevTacho[RIGHT] = rightMotor.getTachoCount();
+
 
       // TODO Implement this method below so it updates the deltaPosition
       updateDeltaPosition(prevTacho, currTacho, theta, deltaPosition);
 
-      // Update odometer values by completing and calling the relevant method
 
+      // Update odometer values by completing and calling the relevant method
+      updateOdometerValues();
       // Print odometer information to the console
 
       // Wait until the next physics step to run the next iteration of the loop
@@ -118,7 +124,19 @@ public class Odometer implements Runnable {
     double dtheta = 0;
     
     // TODO Calculate changes in x, y, theta based on current and previous tachometer counts:
+    double distRight = 3.14159*WHEEL_RAD*(curr[RIGHT])/180; // displacement of right wheel
+    double distLeft = 3.14159*WHEEL_RAD*(curr[LEFT])/180;// displacement of left wheel
+    double distance = (distRight+distLeft)*0.5; // dispalcement magnitude of middle of base.
+    dtheta = (distLeft-distRight)/BASE_WIDTH; // convention: when  turn right, theta increases
+    theta = theta+dtheta;
+    dx = distance*Math.sin(theta);
+    dy = distance*Math.cos(theta);
+
+
+
+
     // Compute left and right wheel displacements
+
     // Compute change in heading and x and y components of displacement
 
     // Set deltas like this
@@ -172,9 +190,11 @@ public class Odometer implements Runnable {
     isResetting = true;
     try {
       x += deltaPosition[0];
+
       
       // TODO Update y and theta. Remember to keep theta within 360 degrees
-      
+      y+= deltaPosition[1];
+       theta  = (theta+deltaPosition[2])%360;
       isResetting = false;
       doneResetting.signalAll(); // Let the other threads know we are done resetting
     } finally {
